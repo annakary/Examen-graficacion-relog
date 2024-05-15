@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clock</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: radial-gradient(red, blue);
+    }
+
+    canvas {
+      border-radius: 30px;
+    }
+
+    input[type="text"] {
+      margin-right: 110px;
+      padding: 5px;
+      margin-top: 65px;
+      font-size: 16px;
+      border-radius: 5px;
+      background-color: rgb(122, 98, 146);
+      border: 1px solid #3b3a3a;
+    }
+
+    button {
+      padding: 5px 15px;
+      margin-left: 170px;
+      font-size: 16px;
+      background-color: purple;
+      color: rgb(158, 146, 146);
+      border: none;
+      margin-top: 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"
+    integrity="sha512-uaz5GpnQoE6t5echKlX8P52czvsIGgLPcvlzfvRubLZ1Hp8JemUDnbUiAahbVtPb+jUVrNETuXvAhDDF/N3M4w=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+  <script>
+    let inputHora;
+    let horaLaPaz = 0;
+    let horaCDMX = 0;
+    let horaBarcelona = 0;
+    let minutosLaPaz = 0;
+    let minutosCDMX = 0;
+    let minutosBarcelona = 0;
+    let segundos = 0;
+
+    function setup() {
+      //Canvas size 
+      createCanvas(600, 300);
+
+      // Posicion de los relojes
+      let offsetY = 160;
+      let relojHeight = 120;
+      let relojY = height / 2 - relojHeight / 2;
+
+      // Obtener la hora actual
+      let horaActual = hour();
+      let minutoActual = minute();
+
+      // Horas y minutos
+      horaLaPaz = horaActual;
+      horaCDMX = (horaActual + 1) % 24;
+      horaBarcelona = (horaActual + 8) % 24;
+      minutosLaPaz = minutoActual;
+      minutosCDMX = minutoActual;
+      minutosBarcelona = minutoActual;
+
+      dibujarReloj(width / 4, relojY, "La Paz", horaLaPaz, minutosLaPaz, puntoPendiente);
+      dibujarReloj(width / 2, relojY, "CDMX", horaCDMX, minutosCDMX, dda);
+      dibujarReloj(width * 3 / 4, relojY, "Barcelona", horaBarcelona, minutosBarcelona, bresenham);
+
+      //Reloj y input
+      let centerX = width / 2;
+      let inputY = relojY + relojHeight + offsetY;
+
+      // Input para la hora
+      inputHora = createInput();
+      inputHora.position(window, inputY + 145);
+
+      // Crear botón para actualizar relojes
+      let boton = createButton('Actualizar');
+      boton.position(window, inputY + inputHora.height + 160);
+      boton.mousePressed(actualizarHoras);
+    }
+
+    function draw() {
+      background("black");
+
+      // Dibujar relojes
+      dibujarReloj(width / 4, height / 2, "La Paz", horaLaPaz, minutosLaPaz, puntoPendiente);
+      dibujarReloj(width / 2, height / 2, "CDMX", horaCDMX, minutosCDMX, dda);
+      dibujarReloj(width * 3 / 4, height / 2, "Barcelona", horaBarcelona, minutosBarcelona, bresenham);
+
+      // Agregar texto "Hours World" al canvas
+      textAlign(CENTER);
+      textSize(24);
+      fill("magenta");
+      text("Hours World", width / 2, 50);
+    }
+
+    function actualizarHoras() {
+      // Obtener la hora y los minutos del input y convertirlos a números
+      let horaInput = inputHora.value().split(":");
+      let hora = int(horaInput[0]);
+      let minuto = int(horaInput[1]);
+
+      // Verificar si la entrada es válida
+      if (isNaN(hora) || isNaN(minuto) || hora < 0 || hora > 23 || minuto < 0 || minuto > 59) {
+        alert("Por favor ingrese una hora válida en formato HH:MM.");
+        // Limpiar el input
+        inputHora.value("");
+        return;
+      }
+
+      // Asignar horas y minutos a los relojes
+      horaLaPaz = hora;
+      horaCDMX = (hora + 1) % 24;
+      horaBarcelona = (hora + 8) % 24;
+
+      minutosLaPaz = minuto;
+      minutosCDMX = minuto;
+      minutosBarcelona = minuto;
+    }
+
+
+    function obtenerMinutos() {
+      return minute();
+    }
+
+    function dibujarReloj(x, y, titulo, hora, minutos, algoritmoDibujo) {
+      textAlign(CENTER);
+      textSize(18);
+
+      textStyle(NORMAL);
+      text(titulo, x, y - 70);
+
+      let radio = 50;
+      noFill();
+      strokeWeight(2);
+      algoritmoDibujo(x, y, radio);
+
+      let horasAngulo = map(hora % 12, 0, 12, 0, TWO_PI) - HALF_PI;
+      let minutosAngulo = map(minutos, 0, 60, 0, TWO_PI) - HALF_PI;
+      let segundosAngulo = map(segundos, 0, 60, 0, TWO_PI) - HALF_PI;
+
+      dibujarManecilla(x, y, radio * 0.5, horasAngulo, 4, color("blue"));
+      dibujarManecilla(x, y, radio * 0.8, minutosAngulo, 2, color("mediumorchid"));
+      dibujarManecilla(x, y, radio * 0.8, segundosAngulo, 1, color("magenta"),fill("magenta"));
+
+      textSize
+
+(16);
+      text(nf(hora, 2) + ':' + nf(minutos, 2), x, y + 80);
+    }
+
+    function dibujarManecilla(x, y, longitud, angulo, grosor, color) {
+      stroke(color);
+      strokeWeight(grosor);
+      line(x, y, x + cos(angulo) * longitud, y + sin(angulo) * longitud);
+    }
+
+    function bresenham(xc, yc, r) {
+      let x = 0;
+      let y = r;
+      let d = 3 - 2 * r;
+      drawSymmetricPoints(xc, yc, x, y);
+      while (y >= x) {
+        x++;
+        if (d > 0) {
+          y--;
+          d = d + 4 * (x - y) + 10;
+        } else {
+          d = d + 4 * x + 6;
+        }
+        drawSymmetricPoints(xc, yc, x, y);
+      }
+    }
+
+    function dda(xc, yc, r) {
+      let x = r;
+      let y = 0;
+      let d = 1 - r;
+
+      drawSymmetricPoints(xc, yc, x, y);
+      while (x > y) {
+        if (d < 0) {
+          d += 2 * y + 3;
+        } else {
+          d += 2 * (y - x) + 5;
+          x--;
+        }
+        y++;
+        drawSymmetricPoints(xc, yc, x, y);
+      }
+    }
+
+    function puntoPendiente(xc, yc, r) {
+      let x = 0;
+      let y = r;
+      let p = 1 - r;
+      drawSymmetricPoints(xc, yc, x, y);
+      while (x < y) {
+        x++;
+        if (p < 0) {
+          p += 2 * x + 1;
+        } else {
+          y--;
+          p += 2 * (x - y) + 1;
+        }
+        drawSymmetricPoints(xc, yc, x, y);
+      }
+    }
+
+    function drawSymmetricPoints(xc, yc, x, y) {
+      point(xc + x, yc + y);
+      point(xc - x, yc + y);
+      point(xc + x, yc - y);
+      point(xc - x, yc - y);
+      point(xc + y, yc + x);
+      point(xc - y, yc + x);
+      point(xc + y, yc - x);
+      point(xc - y, yc - x);
+    }
+
+    function secondTick() {
+      segundos++;
+      if (segundos >= 60) {
+        segundos = 0;
+        minuteTick();
+      }
+    }
+
+    function minuteTick() {
+      minutosLaPaz = (minutosLaPaz + 1) % 60;
+      minutosCDMX = (minutosCDMX + 1) % 60;
+      minutosBarcelona = (minutosBarcelona + 1) % 60;
+
+      if (minutosLaPaz === 0) {
+        horaLaPaz = (horaLaPaz + 1) % 24;
+        horaCDMX = (horaCDMX + 1) % 24;
+        horaBarcelona = (horaBarcelona + 1) % 24;
+      }
+    }
+
+    setInterval(secondTick, 1000);
+  </script>
+</body>
+</html>
